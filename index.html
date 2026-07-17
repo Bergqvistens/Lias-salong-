@@ -1,0 +1,2488 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Lias Hantverkeri i Karlskoga – boka frisörtid, keramikkurser, drop-in och handgjord keramik." />
+<title>Lias Hantverkeri – Frisör &amp; Keramik i Karlskoga</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%234B9FA6'/><text x='50' y='68' font-size='52' text-anchor='middle'>🏺</text></svg>" />
+<style>body{margin:0;background:#4B9FA6}#root:empty::after{content:"Laddar Lias Hantverkeri…";display:block;text-align:center;padding-top:40vh;color:#fff;font-family:sans-serif}</style>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================
+   LIAS HANTVERKERI — Frisör & Keramikverkstad i Karlskoga
+   v1 · Enligt Master-Prompt (Tommy, juli 2026)
+   Färger (Lias val): Turkosblå #4B9FA6 · Sand #E8DCC8 · Rosmaringrön #476452 · Jordbrun #6B5138
+   Typsnitt: Montserrat Semi-Bold (rubriker) · Inter (brödtext)
+   ============================================================ */
+
+const C = {
+  terra: "#4B9FA6" /* turkosblå, mild – Grekland */,
+  turqDeep: "#2E7A80" /* mörkare turkos för text på vitt */,
+  terraDark: "#476452" /* mörk rosmaringrön */,
+  sand: "#E8DCC8" /* sand */,
+  sandLight: "#F4EDE0",
+  brown: "#6B5138" /* jordbrunt */,
+  sandDark: "#91744A" /* sandbrun – knappar */,
+  gray: "#4A4A4A",
+  grayLight: "#8A8178",
+  white: "#FFFFFF",
+  cream: "#FAF6EF",
+  green: "#7A9E7E" /* mynta */,
+  red: "#B4432E",
+};
+
+/* ---------- Lagring (localStorage med skyddad fallback) ---------- */
+const KEY = "lias_v1";
+let memFallback = null;
+const store = {
+  load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : memFallback;
+    } catch (e) {
+      return memFallback;
+    }
+  },
+  save(d) {
+    memFallback = d;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(d));
+    } catch (e) {}
+  },
+};
+
+/* ---------- Ikoner (linjestil, mjuka kurvor) ---------- */
+const P = {
+  cut: "M20 4 8.5 15.5M20 20 8.5 8.5M6 9a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM6 21a3 3 0 1 1 0-6 3 3 0 0 1 0 6z",
+  pot: "M9 3h6M10 3c0 3.5-3.5 4.5-3.5 8.5a5.5 5.5 0 0 0 11 0C17.5 7.5 14 6.5 14 3M8 21h8",
+  bag: "M6 8h12l-1.2 12H7.2L6 8zM9 8V6.5a3 3 0 0 1 6 0V8",
+  heart: "M12 20.5S4.5 16 3 11.5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 9 3.5C19.5 16 12 20.5 12 20.5z",
+  pin: "M12 21.5S19 15 19 10a7 7 0 1 0-14 0c0 5 7 11.5 7 11.5zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  cal: "M4 6.5h16V20H4zM4 10.5h16M8 4v4M16 4v4",
+  coin: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 12h6M12 8.5v7",
+  chart: "M4 20V11M10 20V5M16 20v-7M20 20H2",
+  chat: "M4 5h16v11H9l-5 4V5z",
+  mega: "M4 10v4h3l7 5V5l-7 5H4zM18 9.5a4 4 0 0 1 0 5",
+  box: "M3 8l9-5 9 5v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8",
+  book: "M2 5h8a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H2V5zM22 5h-8a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h8V5z",
+  gear: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5 5l2.1 2.1M16.9 16.9 19 19M19 5l-2.1 2.1M7.1 16.9 5 19",
+  out: "M9 4H5v16h4M15 8l4 4-4 4M19 12H9",
+  x: "M6 6l12 12M18 6 6 18",
+  check: "M4.5 12.5 9.5 17.5 19.5 7",
+  plus: "M12 5v14M5 12h14",
+  menu: "M4 6h16M4 12h16M4 18h16",
+  back: "M14 6l-6 6 6 6",
+  clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3.5 2",
+};
+function Ic({ d, size = 22, style }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={style}
+      aria-hidden="true"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+/* ---------- Startdata ---------- */
+const seedCourses = [
+  {
+    id: "k1",
+    name: "Drejning för nybörjare",
+    level: "Nybörjare",
+    date: "2026-08-12",
+    time: "18:00–20:30",
+    seats: 8,
+    price: 1250,
+    desc: "Lär dig grunderna vid drejskivan. Lera, verktyg och bränning ingår. Inga förkunskaper behövs.",
+  },
+  {
+    id: "k2",
+    name: "Glasyrworkshop",
+    level: "Alla nivåer",
+    date: "2026-08-22",
+    time: "10:00–14:00",
+    seats: 10,
+    price: 950,
+    desc: "Experimentera med glasyrer och dekorera dina egna föremål. Ta med bisquebränt gods eller köp på plats.",
+  },
+  {
+    id: "k3",
+    name: "Kavla & bygga i stengods",
+    level: "Nybörjare",
+    date: "2026-09-05",
+    time: "13:00–16:00",
+    seats: 8,
+    price: 1100,
+    desc: "Handbyggnadsteknik utan drejskiva. Perfekt för dig som vill skapa fat, skålar och lyktor.",
+  },
+];
+const seedProducts = [
+  {
+    id: "p1",
+    title: "Handdrejad mugg",
+    price: 350,
+    emoji: "☕",
+    desc: "Rymlig mugg i stengods med sandmelerad glasyr.",
+    size: "H 9 cm · Ø 8 cm · ca 3 dl",
+    material: "Stengodslera, blyfri glasyr",
+    process: "Drejad, bisquebränd och glasyrbränd till 1250 °C.",
+    stock: 6,
+  },
+  {
+    id: "p2",
+    title: "Skål i stengods",
+    price: 450,
+    emoji: "🥣",
+    desc: "Vardagsskål med terracottafärgad utsida.",
+    size: "H 7 cm · Ø 15 cm",
+    material: "Stengodslera, blyfri glasyr",
+    process: "Drejad och bränd i två omgångar. Tål maskindisk.",
+    stock: 4,
+  },
+  {
+    id: "p3",
+    title: "Vas \u201dKarlskoga\u201d",
+    price: 650,
+    emoji: "🏺",
+    desc: "Skulptural vas med matt sandglasyr.",
+    size: "H 22 cm · Ø 11 cm",
+    material: "Stengodslera",
+    process: "Handdrejad i ett stycke, glaserad invändigt.",
+    stock: 2,
+  },
+  {
+    id: "p4",
+    title: "Litet fat",
+    price: 280,
+    emoji: "🍽️",
+    desc: "Fat för smycken, nycklar eller fika.",
+    size: "Ø 14 cm",
+    material: "Stengodslera, blyfri glasyr",
+    process: "Kavlad och formad för hand.",
+    stock: 8,
+  },
+];
+const initialData = {
+  gdpr: false,
+  onboarded: false,
+  obStep: 0,
+  saveInfo: false,
+  notif: false,
+  myInfo: { name: "", phone: "" },
+  view: "frisor",
+  admin: false,
+  adminView: "dashboard",
+  bookings: [],
+  courseSignups: [],
+  dropins: [],
+  specials: [],
+  messages: [],
+  courses: seedCourses,
+  products: seedProducts,
+  settings: {
+    frisor: {
+      slotStep: 15,
+      schema: [
+        { closed: true, open: "10:00", close: "14:00" },
+        { closed: false, open: "09:00", close: "18:00" },
+        { closed: false, open: "09:00", close: "18:00" },
+        { closed: false, open: "09:00", close: "18:00" },
+        { closed: false, open: "09:00", close: "18:00" },
+        { closed: false, open: "09:00", close: "18:00" },
+        { closed: false, open: "10:00", close: "14:00" },
+      ],
+      categories: [
+        {
+          id: "herr",
+          name: "Herrklippning",
+          base: { "Kort hår": 20, "Mellanlångt": 30, "Långt hår": 40 },
+          price: { "Kort hår": 380, "Mellanlångt": 420, "Långt hår": 460 },
+          addons: [
+            { name: "Färgning", min: 30, price: 520 },
+            { name: "Skäggtrim", min: 15, price: 160 },
+            { name: "Styling", min: 10, price: 120 },
+          ],
+        },
+        {
+          id: "dam",
+          name: "Damklippning",
+          base: { "Kort hår": 30, "Mellanlångt": 45, "Långt hår": 60 },
+          price: { "Kort hår": 520, "Mellanlångt": 580, "Långt hår": 640 },
+          addons: [
+            { name: "Färgning", min: 45, price: 900 },
+            { name: "Slingor", min: 60, price: 1150 },
+            { name: "Styling", min: 20, price: 180 },
+            { name: "Fön & läggning", min: 15, price: 160 },
+          ],
+        },
+        {
+          id: "barn",
+          name: "Barnklippning",
+          base: { Standard: 25 },
+          price: { Standard: 320 },
+          addons: [],
+        },
+      ],
+    },
+    hours: ["Mån–Fre: 09–18", "Lördag: 10–14", "Söndag: Stängt"],
+    dropinTimes: ["Tisdag 17–20", "Lördag 10–14"],
+    adminPw: "lia2026",
+    contact: {
+      address: "Hantverksgatan 3, 691 31 Karlskoga",
+      phone: "070-123 45 67",
+      email: "lias@hantverkeri.se",
+      instagram: "@liashantverkeri",
+      tiktok: "@liashantverkeri",
+      facebook: "Lias Hantverkeri",
+    },
+  },
+};
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const today = () => new Date().toISOString().slice(0, 10);
+const fmtKr = (n) => n.toLocaleString("sv-SE") + " kr";
+
+/* ---------- Tidshjälpare (lediga tider) ---------- */
+const localDate = (d) =>
+  d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const toMin = (t) => {
+  const [a, b] = t.split(":").map(Number);
+  return a * 60 + b;
+};
+const fmtT = (m) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+const DAYS_SHORT = ["Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"];
+function genSlots(dateStr, dur, bookings, schema, step) {
+  const d = new Date(dateStr + "T12:00:00");
+  const day = schema[d.getDay()];
+  if (!day || day.closed || !dur) return [];
+  const open = toMin(day.open);
+  const close = toMin(day.close);
+  const busy = bookings
+    .filter((b) => b.date === dateStr && b.start && b.duration)
+    .map((b) => [toMin(b.start), toMin(b.start) + Number(b.duration)]);
+  const now = new Date();
+  const isToday = dateStr === localDate(now);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const out = [];
+  for (let t = open; t + dur <= close; t += step) {
+    if (isToday && t < nowMin + 30) continue;
+    if (busy.some(([a, b]) => t < b && t + dur > a)) continue;
+    out.push(fmtT(t));
+  }
+  return out;
+}
+
+/* ---------- Globala stilar ---------- */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.lias{font-family:'Inter',sans-serif;color:${C.gray};background:${C.terra};min-height:100vh}
+.lias h1,.lias h2,.lias h3{font-family:'Montserrat',sans-serif;font-weight:600;color:${C.brown}}
+.lias h1{font-size:26px;line-height:1.2}
+.lias h2{font-size:20px}
+.lias h3{font-size:16px}
+.lcard{background:${C.sandLight};border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);padding:18px}
+.lbtn{font-family:'Inter',sans-serif;font-weight:600;font-size:15px;border:none;border-radius:12px;
+  padding:13px 20px;cursor:pointer;background:${C.sandDark};color:#F6EFE2;transition:filter .15s, transform .05s;
+  box-shadow:0 2px 8px rgba(0,0,0,.14);
+  display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.lbtn:hover{filter:brightness(1.1)}
+.lbtn:active{transform:scale(.98)}
+.lbtn:focus-visible,.lghost:focus-visible,.linput:focus-visible{outline:3px solid ${C.terraDark};outline-offset:2px}
+.lbtn.sec{background:${C.white};color:${C.terraDark};box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.lbtn.dark{background:${C.terraDark};color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.lbtn.ghosty{background:transparent;color:${C.terraDark};box-shadow:inset 0 0 0 1.5px ${C.terraDark}}
+.lbtn.small{padding:8px 14px;font-size:13px;border-radius:10px}
+.lbtn:disabled{opacity:.45;cursor:default}
+.lghost{background:none;border:none;cursor:pointer;color:${C.terra};font:inherit;font-weight:600;padding:4px}
+.linput{width:100%;font-family:'Inter',sans-serif;font-size:15px;color:${C.gray};background:${C.white};
+  border:1.5px solid #D8C7A4;border-radius:12px;padding:12px 14px}
+.linput:focus{border-color:${C.terra};outline:none}
+textarea.linput{resize:vertical;min-height:80px}
+.llabel{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;color:${C.gray}}
+.ltag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;background:${C.white};color:${C.terraDark}}
+.ltag.ok{background:#E7F0E8;color:${C.green}}
+.ltag.new{background:${C.terra};color:#fff}
+.lfade{animation:lfade .3s ease}
+@keyframes lfade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lfade{animation:none}.lbtn{transition:none}}
+.subtl{color:${C.grayLight}}
+.lempty{color:${C.grayLight}}
+.onturq h1,.onturq h2,.onturq h3{color:#fff}
+.onturq .lcard h1,.onturq .lcard h2,.onturq .lcard h3,
+.onturq .lmodal h1,.onturq .lmodal h2,.onturq .lmodal h3{color:${C.brown}}
+.onturq .subtl{color:rgba(255,255,255,.88)}
+.onturq .lcard .subtl,.onturq .lmodal .subtl{color:${C.grayLight}}
+.onturq .lempty{color:rgba(255,255,255,.92)}
+.onturq .lghost{color:#fff}
+.onturq .lcard .lghost,.onturq .lmodal .lghost{color:${C.terraDark}}
+.topnav{display:none}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;background:${C.sandLight};box-shadow:0 -4px 12px rgba(0,0,0,0.08);
+  display:flex;justify-content:space-around;padding:6px 4px calc(8px + env(safe-area-inset-bottom));z-index:40}
+.bnav-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:${C.grayLight};padding:6px 8px;border-radius:10px}
+.bnav-btn.on{color:${C.terraDark}}
+@media (min-width:760px){
+  .bottomnav{display:none}
+  .topnav{display:flex;gap:4px;align-items:center}
+  .topnav button{background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;
+    font-size:14.5px;color:${C.gray};padding:9px 14px;border-radius:10px}
+  .topnav button.on{background:${C.white};color:${C.terraDark}}
+}
+.adminside{display:none}
+@media (min-width:900px){
+  .adminside{display:flex;flex-direction:column;gap:2px;width:220px;min-width:220px}
+  .adminburger{display:none!important}
+}
+.aside-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;text-align:left;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:#F1E4DA;padding:11px 14px;border-radius:12px}
+.aside-btn.on{background:rgba(255,255,255,.16);color:#fff}
+.lmodal-bg{position:fixed;inset:0;background:rgba(40,30,25,.45);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:600px){.lmodal-bg{align-items:center}}
+.lmodal{background:${C.sandLight};border-radius:20px 20px 0 0;max-width:520px;width:100%;max-height:88vh;overflow:auto;padding:22px}
+@media (min-width:600px){.lmodal{border-radius:20px}}
+.lgrid2{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:640px){.lgrid2{grid-template-columns:1fr 1fr}}
+.lbar{height:10px;border-radius:999px;background:${C.white};overflow:hidden}
+.lbar>div{height:100%;background:${C.terra};border-radius:999px}
+`;
+
+/* ---------- Små byggstenar ---------- */
+function Modal({ open, onClose, title, children }) {
+  if (!open) return null;
+  return (
+    <div className="lmodal-bg" onClick={onClose}>
+      <div className="lmodal lfade" onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <h2>{title}</h2>
+          <button className="lghost" onClick={onClose} aria-label="Stäng">
+            <Ic d={P.x} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="llabel">{label}</label>
+      {children}
+    </div>
+  );
+}
+function Empty({ icon, text }) {
+  return (
+    <div className="lempty" style={{ textAlign: "center", padding: "34px 10px" }}>
+      <Ic d={icon} size={34} style={{ color: C.sand }} />
+      <p style={{ marginTop: 10, fontSize: 14, color: "inherit" }}>{text}</p>
+    </div>
+  );
+}
+function Toast({ msg }) {
+  if (!msg) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 92,
+        left: "50%",
+        transform: "translateX(-50%)",
+        background: C.gray,
+        color: "#fff",
+        padding: "12px 20px",
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 600,
+        zIndex: 90,
+        boxShadow: "0 4px 12px rgba(0,0,0,.2)",
+        whiteSpace: "nowrap",
+      }}
+      className="lfade"
+    >
+      {msg}
+    </div>
+  );
+}
+
+/* ============================================================
+   ONBOARDING (Steg 0 GDPR → 1 Välkommen → 2 Val → 3 Snabbval)
+   ============================================================ */
+const GDPR_TEXT =
+  "Appen använder cookies för funktionalitet. All data lagras krypterat och delas aldrig med tredje part. " +
+  "Vi följer GDPR och du kan begära utdrag, rättelse eller radering. Kontakt: lias@hantverkeri.se";
+const GDPR_POINTS = [
+  ["Cookies", "Vi använder endast nödvändiga cookies – för att spara dina val och bokningar i din webbläsare."],
+  ["Dina uppgifter", "Namn och telefonnummer som du anger vid bokning används enbart för att hantera just din bokning. Inget delas med tredje part."],
+  ["Dina rättigheter (GDPR)", "Du kan när som helst begära utdrag, rättelse eller radering av dina uppgifter."],
+  ["Kontakt", "lias@hantverkeri.se"],
+];
+
+function Onboarding({ s, up, done }) {
+  const [readMore, setReadMore] = useState(false);
+  const step = s.obStep;
+  const wrap = {
+    position: "fixed",
+    inset: 0,
+    zIndex: 70,
+    background: C.terra,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    textAlign: "center",
+  };
+  const Logo = () => (
+    <div style={{ marginBottom: 18 }}>
+      <div
+        style={{
+          width: 74,
+          height: 74,
+          borderRadius: 22,
+          background: C.terra,
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 10px",
+          boxShadow: "0 4px 12px rgba(0,0,0,.12)",
+        }}
+      >
+        <Ic d={P.pot} size={40} />
+      </div>
+      <h1 style={{ fontSize: 22 }}>Lias Hantverkeri</h1>
+      <p className="subtl" style={{ fontSize: 13 }}>Frisör &amp; keramik i Karlskoga</p>
+    </div>
+  );
+
+  if (!s.gdpr)
+    return (
+      <div style={wrap} className="onturq">
+        <div className="lcard lfade" style={{ maxWidth: 440 }}>
+          <Logo />
+          <p style={{ fontSize: 14, lineHeight: 1.6, textAlign: "left" }}>
+            Vi använder cookies och sparar dina uppgifter lokalt för att appen ska fungera – inget annat, och aldrig
+            till tredje part. Godkänn för att fortsätta.
+          </p>
+          {readMore && (
+            <div style={{ textAlign: "left", marginTop: 12 }}>
+              {GDPR_POINTS.map(([t, txt]) => (
+                <p key={t} style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 8 }}>
+                  <strong style={{ color: C.brown }}>{t}:</strong> {txt}
+                </p>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "center" }}>
+            <button className="lbtn" onClick={() => up({ gdpr: true, gdprDate: today() })}>
+              Godkänn
+            </button>
+            <button className="lbtn ghosty" onClick={() => setReadMore(!readMore)}>
+              {readMore ? "Dölj" : "Läs mer"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
+  if (step === 0)
+    return (
+      <div style={wrap} className="onturq">
+        <div className="lfade" style={{ maxWidth: 420 }}>
+          <Logo />
+          <h1 style={{ marginBottom: 10 }}>Välkommen till Lias Hantverkeri</h1>
+          <p className="subtl" style={{ fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
+            Boka frisörtid, hitta keramikkurser och upptäck handgjorda ting – allt på ett ställe.
+          </p>
+          <button className="lbtn" onClick={() => up({ obStep: 1 })}>
+            Fortsätt
+          </button>
+        </div>
+      </div>
+    );
+
+  if (step === 1) {
+    const cards = [
+      { icon: P.cut, t: "Boka frisörtid", v: "frisor" },
+      { icon: P.pot, t: "Keramikkurser", v: "keramik" },
+      { icon: P.bag, t: "Shoppen", v: "shop" },
+    ];
+    return (
+      <div style={wrap} className="onturq">
+        <div className="lfade" style={{ maxWidth: 420, width: "100%" }}>
+          <h1 style={{ marginBottom: 20 }}>Vad vill du göra?</h1>
+          <div style={{ display: "grid", gap: 12 }}>
+            {cards.map((c) => (
+              <button
+                key={c.v}
+                className="lcard"
+                onClick={() => up({ obStep: 2, view: c.v })}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  cursor: "pointer",
+                  border: "none",
+                  textAlign: "left",
+                  fontFamily: "'Montserrat',sans-serif",
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: C.gray,
+                }}
+              >
+                <span style={{ color: C.terra }}>
+                  <Ic d={c.icon} size={26} />
+                </span>
+                {c.t}
+              </button>
+            ))}
+          </div>
+          <button className="lghost" style={{ marginTop: 18 }} onClick={() => up({ obStep: 2 })}>
+            Jag vill bara titta runt
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={wrap} className="onturq">
+      <div className="lfade" style={{ maxWidth: 420, width: "100%" }}>
+        <h1 style={{ marginBottom: 6 }}>Snabbinställningar</h1>
+        <p className="subtl" style={{ fontSize: 14, marginBottom: 18 }}>Du kan ändra dig när som helst.</p>
+        <div className="lcard" style={{ textAlign: "left", display: "grid", gap: 14 }}>
+          <label style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 15, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={s.notif}
+              onChange={(e) => up({ notif: e.target.checked })}
+              style={{ width: 20, height: 20, accentColor: C.terraDark }}
+            />
+            Aktivera notiser
+          </label>
+          <label style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 15, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={s.saveInfo}
+              onChange={(e) => up({ saveInfo: e.target.checked })}
+              style={{ width: 20, height: 20, accentColor: C.terraDark }}
+            />
+            Spara mina uppgifter för snabbare bokning
+          </label>
+          <button className="lghost" style={{ textAlign: "left" }} onClick={done}>
+            Hoppa över
+          </button>
+        </div>
+        <button className="lbtn" style={{ marginTop: 20 }} onClick={done}>
+          Starta appen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   KUND · FRISÖRBOKNING (tjänst → tillval → dag & tid → uppgifter)
+   ============================================================ */
+function FrisorView({ s, up, addBooking, toast }) {
+  const F = s.settings.frisor;
+  const [step, setStep] = useState(1);
+  const [catId, setCatId] = useState(null);
+  const [len, setLen] = useState(null);
+  const [adds, setAdds] = useState([]);
+  const [date, setDate] = useState(null);
+  const [start, setStart] = useState("");
+  const [name, setName] = useState(s.saveInfo ? s.myInfo.name : "");
+  const [phone, setPhone] = useState(s.saveInfo ? s.myInfo.phone : "");
+  const [comment, setComment] = useState("");
+  const [sent, setSent] = useState(null);
+
+  const cat = F.categories.find((c) => c.id === catId);
+  const addon = (n) => (cat ? cat.addons.find((x) => x.name === n) : null) || {};
+  const dur = cat && len ? (cat.base[len] || 0) + adds.reduce((a, n) => a + (addon(n).min || 0), 0) : 0;
+  const price = cat && len ? (cat.price[len] || 0) + adds.reduce((a, n) => a + (addon(n).price || 0), 0) : 0;
+
+  const days = [];
+  for (let i = 0; i < 21 && days.length < 10; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const sc = F.schema[d.getDay()];
+    if (sc && !sc.closed)
+      days.push({ ds: localDate(d), label: DAYS_SHORT[d.getDay()] + " " + d.getDate() + "/" + (d.getMonth() + 1) });
+  }
+  const slots = date ? genSlots(date, dur, s.bookings, F.schema, F.slotStep || 15) : [];
+
+  const pickCat = (id) => {
+    setCatId(id);
+    setLen(null);
+    setAdds([]);
+    setDate(null);
+    setStart("");
+    const c = F.categories.find((x) => x.id === id);
+    const keys = Object.keys(c.base);
+    if (keys.length === 1) setLen(keys[0]);
+  };
+  const togg = (n) => {
+    setAdds(adds.includes(n) ? adds.filter((x) => x !== n) : [...adds, n]);
+    setStart("");
+  };
+  const stepAfter1 = () => setStep(cat.addons.length > 0 ? 2 : 3);
+  const backFrom3 = () => setStep(cat.addons.length > 0 ? 2 : 1);
+
+  const StepDots = () => (
+    <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "4px 0 18px" }}>
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: i === step ? 26 : 8,
+            height: 8,
+            borderRadius: 999,
+            background: i <= step ? "#fff" : "rgba(255,255,255,.45)",
+            transition: "width .2s",
+          }}
+        />
+      ))}
+    </div>
+  );
+  const Summary = () =>
+    dur > 0 ? (
+      <p className="subtl" style={{ fontSize: 13.5, textAlign: "center", marginBottom: 14 }}>
+        {cat.name} · {len}
+        {adds.length > 0 && " + " + adds.join(", ")} · ca {dur} min · ca {fmtKr(price)}
+      </p>
+    ) : null;
+
+  if (sent)
+    return (
+      <div className="lcard lfade" style={{ textAlign: "center", padding: 32 }}>
+        <span style={{ color: C.green }}>
+          <Ic d={P.check} size={44} />
+        </span>
+        <h2 style={{ margin: "12px 0 8px" }}>Bokning skickad!</h2>
+        <p style={{ fontSize: 14.5, lineHeight: 1.6, color: C.grayLight }}>
+          Du önskade <strong>{sent.date} kl {sent.start}</strong> ({sent.dur} min).
+          <br />
+          Lia bekräftar din tid via telefon eller sms.
+        </p>
+        <button
+          className="lbtn"
+          style={{ marginTop: 20 }}
+          onClick={() => {
+            setSent(null);
+            setStep(1);
+            setCatId(null);
+            setLen(null);
+            setAdds([]);
+            setDate(null);
+            setStart("");
+            setComment("");
+          }}
+        >
+          Klar
+        </button>
+      </div>
+    );
+
+  return (
+    <div className="lfade">
+      <h1 style={{ marginBottom: 4 }}>Boka frisörtid</h1>
+      <p className="subtl" style={{ fontSize: 14, marginBottom: 12 }}>
+        Välj tjänst så räknar vi ut tiden – och visar bara lediga tider.
+      </p>
+      <StepDots />
+      {step > 1 && <Summary />}
+
+      {step === 1 && (
+        <div>
+          <h3 style={{ marginBottom: 12 }}>Steg 1 – Vad vill du boka?</h3>
+          <div style={{ display: "grid", gap: 12 }}>
+            {F.categories.map((c) => (
+              <div
+                key={c.id}
+                className="lcard"
+                style={{ border: catId === c.id ? `2px solid ${C.terraDark}` : "2px solid transparent" }}
+              >
+                <button
+                  onClick={() => pickCat(c.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    width: "100%",
+                    textAlign: "left",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    fontFamily: "'Montserrat',sans-serif",
+                    fontWeight: 600,
+                    fontSize: 15.5,
+                    color: C.brown,
+                    padding: 0,
+                  }}
+                >
+                  <span style={{ color: C.terraDark }}>
+                    <Ic d={P.cut} />
+                  </span>
+                  {c.name}
+                </button>
+                {catId === c.id && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                    {Object.keys(c.base).map((k) => (
+                      <button
+                        key={k}
+                        className={"lbtn small" + (len === k ? "" : " sec")}
+                        onClick={() => {
+                          setLen(k);
+                          setStart("");
+                        }}
+                      >
+                        {k} · {c.base[k]} min
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <button className="lbtn" style={{ marginTop: 16, width: "100%" }} disabled={!cat || !len} onClick={stepAfter1}>
+            Fortsätt
+          </button>
+        </div>
+      )}
+
+      {step === 2 && cat && (
+        <div>
+          <button className="lghost" onClick={() => setStep(1)} style={{ marginBottom: 8 }}>
+            <Ic d={P.back} size={16} style={{ verticalAlign: -3 }} /> Tillbaka
+          </button>
+          <h3 style={{ marginBottom: 12 }}>Steg 2 – Tillval</h3>
+          <div className="lcard" style={{ display: "grid", gap: 4 }}>
+            {cat.addons.map((a) => (
+              <label
+                key={a.name}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 0",
+                  cursor: "pointer",
+                  borderBottom: "1px solid #E9DEC8",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={adds.includes(a.name)}
+                  onChange={() => togg(a.name)}
+                  style={{ width: 20, height: 20, accentColor: C.terraDark }}
+                />
+                <span style={{ flex: 1, fontWeight: 600, fontSize: 14.5 }}>{a.name}</span>
+                <span style={{ fontSize: 13, color: C.grayLight, whiteSpace: "nowrap" }}>
+                  +{a.min} min · +{fmtKr(a.price)}
+                </span>
+              </label>
+            ))}
+            <p style={{ fontSize: 13.5, marginTop: 10, fontWeight: 600, color: C.terraDark }}>
+              Totalt: ca {dur} min · ca {fmtKr(price)}
+            </p>
+          </div>
+          <button className="lbtn" style={{ marginTop: 16, width: "100%" }} onClick={() => setStep(3)}>
+            Fortsätt
+          </button>
+        </div>
+      )}
+
+      {step === 3 && cat && (
+        <div>
+          <button className="lghost" onClick={backFrom3} style={{ marginBottom: 8 }}>
+            <Ic d={P.back} size={16} style={{ verticalAlign: -3 }} /> Tillbaka
+          </button>
+          <h3 style={{ marginBottom: 12 }}>Steg 3 – Välj dag &amp; tid</h3>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8 }}>
+            {days.map((d) => (
+              <button
+                key={d.ds}
+                className={"lbtn small" + (date === d.ds ? "" : " sec")}
+                style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                onClick={() => {
+                  setDate(d.ds);
+                  setStart("");
+                }}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          <div className="lcard" style={{ marginTop: 10 }}>
+            <Field label="Lediga tider">
+              <select
+                className="linput"
+                value={start}
+                disabled={!date}
+                onChange={(e) => setStart(e.target.value)}
+              >
+                <option value="">{date ? "Välj tid…" : "Välj dag först…"}</option>
+                {slots.map((t) => (
+                  <option key={t} value={t}>
+                    {t} – {fmtT(toMin(t) + dur)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            {date && slots.length === 0 && (
+              <p style={{ fontSize: 13.5, color: C.red, marginTop: 8 }}>
+                Inga lediga tider den dagen – prova en annan dag.
+              </p>
+            )}
+            <p style={{ fontSize: 13, color: C.grayLight, marginTop: 10 }}>
+              Din bokning tar ca {dur} min.
+            </p>
+          </div>
+          <button
+            className="lbtn"
+            style={{ marginTop: 16, width: "100%" }}
+            disabled={!date || !start}
+            onClick={() => setStep(4)}
+          >
+            Fortsätt
+          </button>
+        </div>
+      )}
+
+      {step === 4 && cat && (
+        <div className="lcard">
+          <button className="lghost" onClick={() => setStep(3)} style={{ marginBottom: 4 }}>
+            <Ic d={P.back} size={16} style={{ verticalAlign: -3 }} /> Tillbaka
+          </button>
+          <h3>Steg 4 – Dina uppgifter</h3>
+          <p style={{ fontSize: 13.5, color: C.grayLight, marginTop: 4 }}>
+            {date} kl {start} · ca {dur} min · ca {fmtKr(price)}
+          </p>
+          <Field label="Namn">
+            <input className="linput" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ditt namn" />
+          </Field>
+          <Field label="Telefon">
+            <input
+              className="linput"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="07x-xxx xx xx"
+              inputMode="tel"
+            />
+          </Field>
+          <Field label="Kommentar (valfritt)">
+            <textarea
+              className="linput"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="T.ex. önskemål"
+            />
+          </Field>
+          <button
+            className="lbtn"
+            style={{ marginTop: 16, width: "100%" }}
+            disabled={!name.trim() || !phone.trim()}
+            onClick={() => {
+              addBooking({
+                name: name.trim(),
+                phone: phone.trim(),
+                catName: cat.name,
+                length: len,
+                addons: adds,
+                duration: dur,
+                price,
+                date,
+                start,
+                comment: comment.trim(),
+              });
+              if (s.saveInfo) up({ myInfo: { name: name.trim(), phone: phone.trim() } });
+              setSent({ date, start, dur });
+            }}
+          >
+            Skicka bokning
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   KUND · KERAMIKVERKSTAD (kurser + drop-in)
+   ============================================================ */
+function KeramikView({ s, up, toast }) {
+  const [bookCourse, setBookCourse] = useState(null);
+  const [dropDay, setDropDay] = useState(null);
+  const [name, setName] = useState(s.saveInfo ? s.myInfo.name : "");
+  const [phone, setPhone] = useState(s.saveInfo ? s.myInfo.phone : "");
+
+  const seatsLeft = (c) => c.seats - s.courseSignups.filter((x) => x.courseId === c.id).length;
+
+  const submitCourse = () => {
+    up({
+      courseSignups: [
+        ...s.courseSignups,
+        { id: uid(), courseId: bookCourse.id, name: name.trim(), phone: phone.trim(), status: "ny", created: today() },
+      ],
+      ...(s.saveInfo ? { myInfo: { name: name.trim(), phone: phone.trim() } } : {}),
+    });
+    setBookCourse(null);
+    toast("Anmälan skickad! Lia bekräftar din plats. ✔");
+  };
+  const submitDrop = () => {
+    up({
+      dropins: [
+        ...s.dropins,
+        { id: uid(), day: dropDay, name: name.trim(), phone: phone.trim(), status: "ny", created: today() },
+      ],
+      ...(s.saveInfo ? { myInfo: { name: name.trim(), phone: phone.trim() } } : {}),
+    });
+    setDropDay(null);
+    toast("Anmälan skickad! Välkommen på drop-in. ✔");
+  };
+
+  return (
+    <div className="lfade">
+      <h1 style={{ marginBottom: 4 }}>Keramikverkstad</h1>
+      <p className="subtl" style={{ fontSize: 14, marginBottom: 18 }}>
+        Kurser, workshops och drop-in för dig som vill skapa i lera.
+      </p>
+
+      <h2 style={{ marginBottom: 12 }}>Kurser</h2>
+      <div style={{ display: "grid", gap: 14 }}>
+        {s.courses.map((c) => {
+          const left = seatsLeft(c);
+          return (
+            <div key={c.id} className="lcard">
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                <div>
+                  <h3>{c.name}</h3>
+                  <span className="ltag" style={{ marginTop: 6 }}>
+                    {c.level}
+                  </span>
+                </div>
+                <strong style={{ whiteSpace: "nowrap", color: C.terraDark }}>{fmtKr(c.price)}</strong>
+              </div>
+              <p style={{ fontSize: 14, lineHeight: 1.55, margin: "10px 0" }}>{c.desc}</p>
+              <p style={{ fontSize: 13.5, color: C.grayLight }}>
+                {c.date} · {c.time}
+              </p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                <span className={"ltag" + (left > 0 ? " ok" : "")}>
+                  {left > 0 ? `${left} platser kvar` : "Fullbokad"}
+                </span>
+                <button className="lbtn small" disabled={left <= 0} onClick={() => setBookCourse(c)}>
+                  Boka plats
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {s.courses.length === 0 && <Empty icon={P.pot} text="Inga kurser inplanerade just nu – titta in snart igen!" />}
+      </div>
+
+      <h2 style={{ margin: "26px 0 12px" }}>Drop-in</h2>
+      <div className="lcard">
+        <p style={{ fontSize: 14, lineHeight: 1.55, marginBottom: 12 }}>
+          Kom förbi och dreja eller handbygg utan att boka kurs. Lera och verktyg finns på plats.
+        </p>
+        {s.settings.dropinTimes.map((d) => (
+          <div
+            key={d}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "10px 0",
+              borderTop: `1px solid ${C.sandLight}`,
+            }}
+          >
+            <span style={{ fontWeight: 600, fontSize: 14.5 }}>{d}</span>
+            <button className="lbtn small sec" onClick={() => setDropDay(d)}>
+              Anmäl mig
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <Modal open={!!bookCourse} onClose={() => setBookCourse(null)} title={bookCourse ? bookCourse.name : ""}>
+        {bookCourse && (
+          <div>
+            <p style={{ fontSize: 13.5, color: C.grayLight }}>
+              {bookCourse.date} · {bookCourse.time} · {fmtKr(bookCourse.price)}
+            </p>
+            <Field label="Namn">
+              <input className="linput" value={name} onChange={(e) => setName(e.target.value)} />
+            </Field>
+            <Field label="Telefon">
+              <input className="linput" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
+            </Field>
+            <button
+              className="lbtn"
+              style={{ marginTop: 16, width: "100%" }}
+              disabled={!name.trim() || !phone.trim()}
+              onClick={submitCourse}
+            >
+              Boka plats
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={!!dropDay} onClose={() => setDropDay(null)} title="Anmälan drop-in">
+        <p style={{ fontSize: 13.5, color: C.grayLight }}>{dropDay}</p>
+        <Field label="Namn">
+          <input className="linput" value={name} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        <Field label="Telefon">
+          <input className="linput" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" />
+        </Field>
+        <button
+          className="lbtn"
+          style={{ marginTop: 16, width: "100%" }}
+          disabled={!name.trim() || !phone.trim()}
+          onClick={submitDrop}
+        >
+          Anmäl mig
+        </button>
+      </Modal>
+    </div>
+  );
+}
+
+/* ============================================================
+   KUND · KERAMIKSHOP
+   ============================================================ */
+function ShopView({ s, up, toast }) {
+  const [openProd, setOpenProd] = useState(null);
+  const [special, setSpecial] = useState(false);
+  const [f, setF] = useState({ name: "", contact: "", type: "", size: "", colors: "", desc: "" });
+  const setFld = (k) => (e) => setF({ ...f, [k]: e.target.value });
+
+  return (
+    <div className="lfade">
+      <h1 style={{ marginBottom: 4 }}>Keramikshop</h1>
+      <p className="subtl" style={{ fontSize: 14, marginBottom: 18 }}>
+        Handgjorda föremål från verkstaden – varje del är unik.
+      </p>
+
+      <div className="lgrid2">
+        {s.products.map((p) => (
+          <button
+            key={p.id}
+            className="lcard"
+            onClick={() => setOpenProd(p)}
+            style={{ cursor: "pointer", border: "none", textAlign: "left" }}
+          >
+            <div
+              style={{
+                background: C.sand,
+                borderRadius: 12,
+                height: 110,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 52,
+                marginBottom: 12,
+              }}
+              aria-hidden="true"
+            >
+              {p.emoji}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+              <h3 style={{ fontSize: 15 }}>{p.title}</h3>
+              <strong style={{ whiteSpace: "nowrap", color: C.terraDark, fontSize: 15 }}>{fmtKr(p.price)}</strong>
+            </div>
+            <p style={{ fontSize: 13, color: C.grayLight, margin: "6px 0 10px" }}>{p.desc}</p>
+            <span className={"ltag" + (p.stock > 0 ? " ok" : "")}>{p.stock > 0 ? `${p.stock} i lager` : "Slutsåld"}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="lcard" style={{ marginTop: 20, textAlign: "center" }}>
+        <h3>Vill du ha något helt eget?</h3>
+        <p style={{ fontSize: 14, color: C.grayLight, margin: "8px 0 14px" }}>
+          Lia tar emot specialbeställningar – beskriv din idé så hör hon av sig.
+        </p>
+        <button className="lbtn dark" onClick={() => setSpecial(true)}>
+          Specialbeställning
+        </button>
+      </div>
+
+      <Modal open={!!openProd} onClose={() => setOpenProd(null)} title={openProd ? openProd.title : ""}>
+        {openProd && (
+          <div>
+            <div
+              style={{
+                background: C.sand,
+                borderRadius: 14,
+                height: 160,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 84,
+                marginBottom: 14,
+              }}
+              aria-hidden="true"
+            >
+              {openProd.emoji}
+            </div>
+            <strong style={{ fontSize: 18, color: C.terraDark }}>{fmtKr(openProd.price)}</strong>
+            <p style={{ fontSize: 14.5, lineHeight: 1.6, margin: "10px 0" }}>{openProd.desc}</p>
+            <p style={{ fontSize: 13.5, lineHeight: 1.7 }}>
+              <strong>Mått:</strong> {openProd.size}
+              <br />
+              <strong>Material:</strong> {openProd.material}
+              <br />
+              <strong>Process:</strong> {openProd.process}
+            </p>
+            <div style={{ margin: "12px 0" }}>
+              <span className={"ltag" + (openProd.stock > 0 ? " ok" : "")}>
+                {openProd.stock > 0 ? `${openProd.stock} i lager` : "Slutsåld"}
+              </span>
+            </div>
+            <button
+              className="lbtn"
+              style={{ width: "100%" }}
+              onClick={() => {
+                setOpenProd(null);
+                up({ view: "kontakt" });
+              }}
+            >
+              Kontakta Lia
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={special} onClose={() => setSpecial(false)} title="Specialbeställning">
+        <Field label="Namn">
+          <input className="linput" value={f.name} onChange={setFld("name")} />
+        </Field>
+        <Field label="Kontakt (telefon eller e-post)">
+          <input className="linput" value={f.contact} onChange={setFld("contact")} />
+        </Field>
+        <Field label="Typ av produkt">
+          <input className="linput" value={f.type} onChange={setFld("type")} placeholder="T.ex. muggar, fat, vas" />
+        </Field>
+        <Field label="Mått">
+          <input className="linput" value={f.size} onChange={setFld("size")} placeholder="Ungefärlig storlek" />
+        </Field>
+        <Field label="Färgtema">
+          <input className="linput" value={f.colors} onChange={setFld("colors")} placeholder="T.ex. terracotta & sand" />
+        </Field>
+        <Field label="Beskrivning">
+          <textarea className="linput" value={f.desc} onChange={setFld("desc")} />
+        </Field>
+        <button
+          className="lbtn"
+          style={{ marginTop: 16, width: "100%" }}
+          disabled={!f.name.trim() || !f.contact.trim() || !f.type.trim()}
+          onClick={() => {
+            up({ specials: [...s.specials, { id: uid(), ...f, status: "ny", created: today() }] });
+            setSpecial(false);
+            setF({ name: "", contact: "", type: "", size: "", colors: "", desc: "" });
+            toast("Förfrågan skickad! Lia hör av sig. ✔");
+          }}
+        >
+          Skicka förfrågan
+        </button>
+      </Modal>
+    </div>
+  );
+}
+
+/* ============================================================
+   KUND · OM LIA + KONTAKT
+   ============================================================ */
+function OmLiaView() {
+  return (
+    <div className="lfade">
+      <div
+        style={{
+          background: `linear-gradient(135deg, ${C.terraDark}, ${C.brown})`,
+          borderRadius: 16,
+          color: "#fff",
+          padding: "30px 22px",
+          marginBottom: 16,
+          boxShadow: "0 4px 12px rgba(0,0,0,.08)",
+        }}
+      >
+        <h1 style={{ color: "#fff", marginBottom: 6 }}>Om Lia</h1>
+        <p style={{ fontSize: 14.5, lineHeight: 1.6, opacity: 0.95 }}>Frisör, keramiker och hantverkare i Karlskoga.</p>
+      </div>
+      <div className="lcard" style={{ display: "grid", gap: 12 }}>
+        <p style={{ fontSize: 14.5, lineHeight: 1.7 }}>
+          Hos Lias Hantverkeri möts två hantverk under samma tak: frisörsalongen där varje klippning formas efter dig,
+          och keramikverkstaden där händer, lera och tid får skapa i lugn och ro.
+        </p>
+        <p style={{ fontSize: 14.5, lineHeight: 1.7 }}>
+          Lia har arbetat som frisör i över tio år och driver sedan några år tillbaka även keramikverkstaden – med
+          kurser, drop-in och en liten shop med handgjorda föremål. Allt görs lokalt, med naturliga material och stor
+          omsorg om detaljerna.
+        </p>
+        <p style={{ fontSize: 14.5, lineHeight: 1.7 }}>
+          Varmt välkommen in – för en ny frisyr, en kväll vid drejskivan, eller bara en titt i shoppen.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function KontaktView({ s, up, toast, openAdmin, openPrivacy }) {
+  const ct = s.settings.contact;
+  const [f, setF] = useState({ name: "", email: "", phone: "", text: "" });
+  const setFld = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  return (
+    <div className="lfade">
+      <h1 style={{ marginBottom: 14 }}>Kontakt &amp; Hitta hit</h1>
+
+      <div className="lcard" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 10 }}>Kontakt</h3>
+        <p style={{ fontSize: 14.5, lineHeight: 1.9 }}>
+          <Ic d={P.pin} size={16} style={{ verticalAlign: -3, color: C.terra }} /> {ct.address}
+          <br />
+          <Ic d={P.chat} size={16} style={{ verticalAlign: -3, color: C.terra }} />{" "}
+          <a href={"tel:" + ct.phone.replace(/[^\d+]/g, "")} style={{ color: C.terraDark }}>
+            {ct.phone}
+          </a>
+          <br />
+          <Ic d={P.mega} size={16} style={{ verticalAlign: -3, color: C.terra }} />{" "}
+          <a href={"mailto:" + ct.email} style={{ color: C.terraDark }}>
+            {ct.email}
+          </a>
+        </p>
+      </div>
+
+      <div className="lcard" style={{ marginBottom: 14, padding: 0, overflow: "hidden" }}>
+        <iframe
+          title="Karta"
+          src="https://maps.google.com/maps?q=Karlskoga&z=13&output=embed"
+          style={{ width: "100%", height: 190, border: 0, display: "block" }}
+          loading="lazy"
+        />
+      </div>
+
+      <div className="lgrid2" style={{ marginBottom: 14 }}>
+        <div className="lcard">
+          <h3 style={{ marginBottom: 8 }}>Öppettider</h3>
+          {s.settings.hours.map((h) => (
+            <p key={h} style={{ fontSize: 14, lineHeight: 1.8 }}>
+              {h}
+            </p>
+          ))}
+        </div>
+        <div className="lcard">
+          <h3 style={{ marginBottom: 8 }}>Sociala medier</h3>
+          <p style={{ fontSize: 14, lineHeight: 1.9 }}>
+            Instagram: {ct.instagram}
+            <br />
+            TikTok: {ct.tiktok}
+            <br />
+            Facebook: {ct.facebook}
+          </p>
+        </div>
+      </div>
+
+      <div className="lcard">
+        <h3>Skriv till oss</h3>
+        <Field label="Namn">
+          <input className="linput" value={f.name} onChange={setFld("name")} />
+        </Field>
+        <Field label="E-post">
+          <input className="linput" value={f.email} onChange={setFld("email")} inputMode="email" />
+        </Field>
+        <Field label="Telefon">
+          <input className="linput" value={f.phone} onChange={setFld("phone")} inputMode="tel" />
+        </Field>
+        <Field label="Meddelande">
+          <textarea className="linput" value={f.text} onChange={setFld("text")} />
+        </Field>
+        <button
+          className="lbtn"
+          style={{ marginTop: 16, width: "100%" }}
+          disabled={!f.name.trim() || !f.text.trim() || (!f.email.trim() && !f.phone.trim())}
+          onClick={() => {
+            up({ messages: [...s.messages, { id: uid(), ...f, created: today(), read: false }] });
+            setF({ name: "", email: "", phone: "", text: "" });
+            toast("Meddelande skickat! ✔");
+          }}
+        >
+          Skicka meddelande
+        </button>
+      </div>
+
+      <p className="subtl" style={{ textAlign: "center", margin: "22px 0 6px", fontSize: 12.5 }}>
+        Lias Hantverkeri · Karlskoga ·{" "}
+        <button className="lghost" style={{ fontSize: 12.5, fontWeight: 500 }} onClick={openPrivacy}>
+          Integritet &amp; cookies
+        </button>{" "}
+        ·{" "}
+        <button className="lghost" style={{ fontSize: 12.5, fontWeight: 500 }} onClick={openAdmin}>
+          Admin
+        </button>
+      </p>
+    </div>
+  );
+}
+
+/* ============================================================
+   ADMIN
+   ============================================================ */
+function AdminLogin({ open, onClose, s, up }) {
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+  return (
+    <Modal open={open} onClose={onClose} title="Adminpanel">
+      <p style={{ fontSize: 13.5, color: C.grayLight, marginBottom: 4 }}>
+        Endast för Lia. Demoversion – data sparas lokalt i webbläsaren.
+      </p>
+      <Field label="Lösenord">
+        <input
+          className="linput"
+          type="password"
+          value={pw}
+          onChange={(e) => {
+            setPw(e.target.value);
+            setErr(false);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && tryLogin()}
+        />
+      </Field>
+      {err && <p style={{ color: C.red, fontSize: 13, marginTop: 6 }}>Fel lösenord – försök igen.</p>}
+      <button className="lbtn dark" style={{ marginTop: 16, width: "100%" }} onClick={tryLogin}>
+        Logga in
+      </button>
+    </Modal>
+  );
+  function tryLogin() {
+    if (pw === s.settings.adminPw) {
+      up({ admin: true, adminView: "dashboard" });
+      setPw("");
+      onClose();
+    } else setErr(true);
+  }
+}
+
+function StatCard({ label, value, icon }) {
+  return (
+    <div className="lcard" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <span
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 12,
+          background: C.white,
+          color: C.terraDark,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Ic d={icon} size={22} />
+      </span>
+      <div>
+        <div style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: 22 }}>{value}</div>
+        <div style={{ fontSize: 12.5, color: C.grayLight }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+function Bars({ rows, unit }) {
+  const max = Math.max(1, ...rows.map((r) => r.v));
+  return (
+    <div style={{ display: "grid", gap: 10 }}>
+      {rows.map((r) => (
+        <div key={r.k}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+            <span style={{ fontWeight: 600 }}>{r.k}</span>
+            <span style={{ color: C.grayLight }}>
+              {unit === "kr" ? fmtKr(r.v) : r.v}
+            </span>
+          </div>
+          <div className="lbar">
+            <div style={{ width: (r.v / max) * 100 + "%" }} />
+          </div>
+        </div>
+      ))}
+      {rows.length === 0 && <p style={{ fontSize: 13.5, color: C.grayLight }}>Ingen data ännu.</p>}
+    </div>
+  );
+}
+
+function AdminView({ s, up, toast }) {
+  const [menu, setMenu] = useState(false);
+  const [editCourse, setEditCourse] = useState(null);
+  const [editProd, setEditProd] = useState(null);
+
+  const av = s.adminView;
+  const go = (v) => {
+    up({ adminView: v });
+    setMenu(false);
+  };
+  const course = (id) => s.courses.find((c) => c.id === id);
+
+  /* --- inkomstberäkning --- */
+  const incFrisor = s.bookings.filter((b) => b.status === "bekräftad").reduce((a, b) => a + (b.price || 0), 0);
+  const incKurs = s.courseSignups
+    .filter((x) => x.status === "bekräftad")
+    .reduce((a, x) => a + ((course(x.courseId) || {}).price || 0), 0);
+  const weekAgo = Date.now() - 7 * 864e5;
+  const incWeek =
+    s.bookings
+      .filter((b) => b.status === "bekräftad" && (b.confirmedAt || 0) > weekAgo)
+      .reduce((a, b) => a + (b.price || 0), 0) +
+    s.courseSignups
+      .filter((x) => x.status === "bekräftad" && (x.confirmedAt || 0) > weekAgo)
+      .reduce((a, x) => a + ((course(x.courseId) || {}).price || 0), 0);
+
+  const NAV = [
+    ["dashboard", "Dashboard", P.grid],
+    ["bokningar", "Bokningar", P.cal],
+    ["inkomster", "Inkomster", P.coin],
+    ["statistik", "Statistik", P.chart],
+    ["kommunikation", "Kommunikation", P.chat],
+    ["marknadsforing", "Marknadsföring", P.mega],
+    ["produkter", "Produkter", P.box],
+    ["kurser", "Kurser", P.book],
+    ["installningar", "Inställningar", P.gear],
+  ];
+
+  const count = (arr, st) => arr.filter((x) => x.status === st).length;
+
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", background: C.cream }}>
+      {/* Sidomeny (desktop) */}
+      <div style={{ background: C.terraDark, padding: "20px 12px" }} className="adminside">
+        <div style={{ color: "#fff", fontFamily: "'Montserrat',sans-serif", fontWeight: 700, padding: "0 14px 16px" }}>
+          Lias Hantverkeri
+          <div style={{ fontSize: 11.5, fontWeight: 500, opacity: 0.8, fontFamily: "'Inter',sans-serif" }}>
+            Adminpanel
+          </div>
+        </div>
+        {NAV.map(([v, t, i]) => (
+          <button key={v} className={"aside-btn" + (av === v ? " on" : "")} onClick={() => go(v)}>
+            <Ic d={i} size={18} /> {t}
+          </button>
+        ))}
+        <button className="aside-btn" style={{ marginTop: "auto" }} onClick={() => up({ admin: false })}>
+          <Ic d={P.out} size={18} /> Logga ut
+        </button>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Toppbar mobil (hamburgare) */}
+        <div
+          className="adminburger"
+          style={{
+            background: C.terraDark,
+            color: "#fff",
+            padding: "14px 16px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            position: "sticky",
+            top: 0,
+            zIndex: 30,
+          }}
+        >
+          <strong style={{ fontFamily: "'Montserrat',sans-serif" }}>Adminpanel</strong>
+          <button
+            onClick={() => setMenu(!menu)}
+            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer" }}
+            aria-label="Meny"
+          >
+            <Ic d={menu ? P.x : P.menu} size={24} />
+          </button>
+        </div>
+        {menu && (
+          <div className="lfade" style={{ background: C.terraDark, padding: 12, position: "sticky", top: 52, zIndex: 29 }}>
+            {NAV.map(([v, t, i]) => (
+              <button key={v} className={"aside-btn" + (av === v ? " on" : "")} onClick={() => go(v)} style={{ width: "100%" }}>
+                <Ic d={i} size={18} /> {t}
+              </button>
+            ))}
+            <button className="aside-btn" style={{ width: "100%" }} onClick={() => up({ admin: false })}>
+              <Ic d={P.out} size={18} /> Logga ut
+            </button>
+          </div>
+        )}
+
+        <div style={{ padding: "20px 16px 60px", maxWidth: 860, margin: "0 auto" }}>
+          {/* ---------- DASHBOARD ---------- */}
+          {av === "dashboard" && (
+            <div className="lfade">
+              <h1 style={{ marginBottom: 16 }}>Dashboard</h1>
+              <div className="lgrid2">
+                <StatCard label="Nya frisörförfrågningar" value={count(s.bookings, "ny")} icon={P.cut} />
+                <StatCard label="Veckans inkomster" value={fmtKr(incWeek)} icon={P.coin} />
+                <StatCard label="Nya kursanmälningar" value={count(s.courseSignups, "ny") + count(s.dropins, "ny")} icon={P.book} />
+                <StatCard label="Nya meddelanden" value={s.messages.filter((m) => !m.read).length} icon={P.chat} />
+              </div>
+              <div className="lcard" style={{ marginTop: 16 }}>
+                <h3 style={{ marginBottom: 10 }}>Att göra</h3>
+                {count(s.bookings, "ny") + count(s.courseSignups, "ny") + count(s.dropins, "ny") + count(s.specials, "ny") === 0 ? (
+                  <p style={{ fontSize: 14, color: C.grayLight }}>Allt är hanterat – snyggt jobbat! ✨</p>
+                ) : (
+                  <ul style={{ fontSize: 14, lineHeight: 2, paddingLeft: 18 }}>
+                    {count(s.bookings, "ny") > 0 && <li>{count(s.bookings, "ny")} frisörbokningar väntar på bekräftelse</li>}
+                    {count(s.courseSignups, "ny") > 0 && <li>{count(s.courseSignups, "ny")} kursanmälningar att bekräfta</li>}
+                    {count(s.dropins, "ny") > 0 && <li>{count(s.dropins, "ny")} drop-in-anmälningar</li>}
+                    {count(s.specials, "ny") > 0 && <li>{count(s.specials, "ny")} nya specialbeställningar</li>}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ---------- BOKNINGAR ---------- */}
+          {av === "bokningar" && (
+            <div className="lfade">
+              <h1 style={{ marginBottom: 16 }}>Bokningar</h1>
+
+              <h2 style={{ margin: "6px 0 10px" }}>Frisör</h2>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.bookings.length === 0 && <Empty icon={P.cut} text="Inga frisörbokningar ännu." />}
+                {[...s.bookings].reverse().map((b) => (
+                  <div key={b.id} className="lcard">
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                      <strong>{b.name}</strong>
+                      <span className={"ltag " + (b.status === "ny" ? "new" : "ok")}>{b.status === "ny" ? "Ny" : "Bekräftad"}</span>
+                    </div>
+                    <p style={{ fontSize: 13.5, margin: "6px 0", lineHeight: 1.7 }}>
+                      {b.catName || b.service}
+                      {b.length ? ` · ${b.length}` : ""}
+                      {b.addons && b.addons.length > 0 ? ` + ${b.addons.join(", ")}` : ""}
+                      <br />
+                      {b.date ? `${b.date} kl ${b.start} · ${b.duration} min` : b.block}
+                      {b.price ? ` · ca ${fmtKr(b.price)}` : ""} · 📞 {b.phone}
+                      {b.comment && (
+                        <>
+                          <br />
+                          <em>”{b.comment}”</em>
+                        </>
+                      )}
+                    </p>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {b.status === "ny" && (
+                        <button
+                          className="lbtn small"
+                          onClick={() => {
+                            up({
+                              bookings: s.bookings.map((y) =>
+                                y.id === b.id ? { ...y, status: "bekräftad", confirmedAt: Date.now() } : y
+                              ),
+                            });
+                            toast("Bokning bekräftad ✔ (sms/e-post kräver backend)");
+                          }}
+                        >
+                          Bekräfta
+                        </button>
+                      )}
+                      <a className="lbtn small sec" style={{ textDecoration: "none" }} href={"tel:" + b.phone.replace(/[^\d+]/g, "")}>
+                        Ring
+                      </a>
+                      <button
+                        className="lbtn small sec"
+                        onClick={() => up({ bookings: s.bookings.filter((x) => x.id !== b.id) })}
+                      >
+                        Ta bort
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <h2 style={{ margin: "22px 0 10px" }}>Keramikkurser</h2>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.courseSignups.length === 0 && <Empty icon={P.pot} text="Inga kursanmälningar ännu." />}
+                {[...s.courseSignups].reverse().map((x) => (
+                  <div key={x.id} className="lcard" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                    <div>
+                      <strong>{x.name}</strong>
+                      <p style={{ fontSize: 13.5, color: C.grayLight }}>
+                        {(course(x.courseId) || {}).name || "Borttagen kurs"} · 📞 {x.phone}
+                      </p>
+                    </div>
+                    {x.status === "ny" ? (
+                      <button
+                        className="lbtn small"
+                        onClick={() =>
+                          up({
+                            courseSignups: s.courseSignups.map((y) =>
+                              y.id === x.id ? { ...y, status: "bekräftad", confirmedAt: Date.now() } : y
+                            ),
+                          })
+                        }
+                      >
+                        Bekräfta plats
+                      </button>
+                    ) : (
+                      <span className="ltag ok">Bekräftad</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <h2 style={{ margin: "22px 0 10px" }}>Drop-in</h2>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.dropins.length === 0 && <Empty icon={P.clock} text="Inga drop-in-anmälningar ännu." />}
+                {[...s.dropins].reverse().map((x) => (
+                  <div key={x.id} className="lcard" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                    <div>
+                      <strong>{x.name}</strong>
+                      <p style={{ fontSize: 13.5, color: C.grayLight }}>
+                        {x.day} · 📞 {x.phone}
+                      </p>
+                    </div>
+                    {x.status === "ny" ? (
+                      <button
+                        className="lbtn small"
+                        onClick={() => up({ dropins: s.dropins.map((y) => (y.id === x.id ? { ...y, status: "bekräftad" } : y)) })}
+                      >
+                        Bekräfta
+                      </button>
+                    ) : (
+                      <span className="ltag ok">Bekräftad</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ---------- INKOMSTER ---------- */}
+          {av === "inkomster" && (
+            <div className="lfade">
+              <h1 style={{ marginBottom: 16 }}>Inkomster</h1>
+              <div className="lgrid2" style={{ marginBottom: 16 }}>
+                <StatCard label="Totalt (bekräftat)" value={fmtKr(incFrisor + incKurs)} icon={P.coin} />
+                <StatCard label="Senaste 7 dagarna" value={fmtKr(incWeek)} icon={P.chart} />
+              </div>
+              <div className="lcard">
+                <h3 style={{ marginBottom: 12 }}>Per kategori</h3>
+                <Bars
+                  unit="kr"
+                  rows={[
+                    { k: "Frisör", v: incFrisor },
+                    { k: "Kurser", v: incKurs },
+                  ]}
+                />
+                <p style={{ fontSize: 12.5, color: C.grayLight, marginTop: 12 }}>
+                  Beräknas från bekräftade bokningar och kursplatser utifrån prislistan i Inställningar.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ---------- STATISTIK ---------- */}
+          {av === "statistik" && (
+            <div className="lfade">
+              <h1 style={{ marginBottom: 16 }}>Statistik</h1>
+              <div className="lcard" style={{ marginBottom: 14 }}>
+                <h3 style={{ marginBottom: 12 }}>Mest bokade tjänster</h3>
+                <Bars
+                  rows={(() => {
+                    const cats = s.settings.frisor.categories.map((c) => ({
+                      k: c.name,
+                      v: s.bookings.filter((b) => (b.catName || b.service) === c.name).length,
+                    }));
+                    const ac = {};
+                    s.bookings.forEach((b) => (b.addons || []).forEach((n) => (ac[n] = (ac[n] || 0) + 1)));
+                    const adds = Object.entries(ac).map(([k, v]) => ({ k: "+ " + k, v }));
+                    return [...cats, ...adds].filter((r) => r.v > 0).sort((a, b) => b.v - a.v);
+                  })()}
+                />
+              </div>
+              <div className="lcard" style={{ marginBottom: 14 }}>
+                <h3 style={{ marginBottom: 12 }}>Populära kurser</h3>
+                <Bars
+                  rows={s.courses
+                    .map((c) => ({ k: c.name, v: s.courseSignups.filter((x) => x.courseId === c.id).length }))
+                    .filter((r) => r.v > 0)
+                    .sort((a, b) => b.v - a.v)}
+                />
+              </div>
+              <div className="lgrid2">
+                <StatCard label="Unika kunder" value={new Set([...s.bookings, ...s.courseSignups, ...s.dropins].map((x) => x.phone)).size} icon={P.heart} />
+                <StatCard label="Produkter i lager" value={s.products.reduce((a, p) => a + p.stock, 0)} icon={P.box} />
+              </div>
+            </div>
+          )}
+
+          {/* ---------- KOMMUNIKATION ---------- */}
+          {av === "kommunikation" && (
+            <div className="lfade">
+              <h1 style={{ marginBottom: 16 }}>Kommunikation</h1>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.messages.length === 0 && <Empty icon={P.chat} text="Inga meddelanden ännu." />}
+                {[...s.messages].reverse().map((m) => (
+                  <div key={m.id} className="lcard" style={{ opacity: m.read ? 0.75 : 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                      <strong>{m.name}</strong>
+                      {!m.read && <span className="ltag new">Ny</span>}
+                    </div>
+                    <p style={{ fontSize: 13, color: C.grayLight, margin: "4px 0 8px" }}>
+                      {m.created} · {m.email || m.phone}
+                    </p>
+                    <p style={{ fontSize: 14, lineHeight: 1.6 }}>{m.text}</p>
+                    <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                      {m.email && (
+                        <a className="lbtn small sec" style={{ textDecoration: "none" }} href={"mailto:" + m.email}>
+                          Svara via e-post
+                        </a>
+                      )}
+                      {m.phone && (
+                        <a className="lbtn small sec" style={{ textDecoration: "none" }} href={"tel:" + m.phone.replace(/[^\d+]/g, "")}>
+                          Ring
+                        </a>
+                      )}
+                      {!m.read && (
+                        <button className="lbtn small" onClick={() => up({ messages: s.messages.map((y) => (y.id === m.id ? { ...y, read: true } : y)) })}>
+                          Markera läst
+                        </button>
+                      )}
+                      <button className="lbtn small sec" onClick={() => up({ messages: s.messages.filter((y) => y.id !== m.id) })}>
+                        Ta bort
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ---------- MARKNADSFÖRING ---------- */}
+          {av === "marknadsforing" && <Marketing s={s} toast={toast} />}
+
+          {/* ---------- PRODUKTER ---------- */}
+          {av === "produkter" && (
+            <div className="lfade">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h1>Produkter</h1>
+                <button
+                  className="lbtn small"
+                  onClick={() =>
+                    setEditProd({ id: null, title: "", price: "", emoji: "🏺", desc: "", size: "", material: "Stengodslera", process: "", stock: 1 })
+                  }
+                >
+                  <Ic d={P.plus} size={15} /> Ny produkt
+                </button>
+              </div>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.products.map((p) => (
+                  <div key={p.id} className="lcard" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 30 }}>{p.emoji}</span>
+                    <div style={{ flex: 1, minWidth: 140 }}>
+                      <strong>{p.title}</strong>
+                      <p style={{ fontSize: 13, color: C.grayLight }}>{fmtKr(p.price)}</p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <button className="lbtn small sec" aria-label="Minska lager" onClick={() => chStock(p, -1)}>
+                        −
+                      </button>
+                      <span style={{ minWidth: 54, textAlign: "center", fontSize: 13.5, fontWeight: 600 }}>{p.stock} st</span>
+                      <button className="lbtn small sec" aria-label="Öka lager" onClick={() => chStock(p, 1)}>
+                        +
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button className="lbtn small sec" onClick={() => setEditProd({ ...p })}>
+                        Redigera
+                      </button>
+                      <button className="lbtn small sec" onClick={() => up({ products: s.products.filter((x) => x.id !== p.id) })}>
+                        Ta bort
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <h2 style={{ margin: "24px 0 10px" }}>Specialbeställningar</h2>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.specials.length === 0 && <Empty icon={P.box} text="Inga specialbeställningar ännu." />}
+                {[...s.specials].reverse().map((x) => (
+                  <div key={x.id} className="lcard">
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <strong>{x.name}</strong>
+                      <span className={"ltag " + (x.status === "ny" ? "new" : x.status === "klar" ? "ok" : "")}>{x.status}</span>
+                    </div>
+                    <p style={{ fontSize: 13.5, lineHeight: 1.7, margin: "6px 0" }}>
+                      {x.type}
+                      {x.size && <> · {x.size}</>}
+                      {x.colors && <> · {x.colors}</>}
+                      <br />
+                      {x.desc && <em>”{x.desc}”</em>}
+                      <br />
+                      Kontakt: {x.contact} · {x.created}
+                    </p>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        className="lbtn small"
+                        onClick={() => {
+                          const next = x.status === "ny" ? "pågår" : x.status === "pågår" ? "klar" : "ny";
+                          up({ specials: s.specials.map((y) => (y.id === x.id ? { ...y, status: next } : y)) });
+                        }}
+                      >
+                        Nästa status
+                      </button>
+                      <button className="lbtn small sec" onClick={() => up({ specials: s.specials.filter((y) => y.id !== x.id) })}>
+                        Ta bort
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ---------- KURSER ---------- */}
+          {av === "kurser" && (
+            <div className="lfade">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h1>Kurser</h1>
+                <button
+                  className="lbtn small"
+                  onClick={() => setEditCourse({ id: null, name: "", level: "Nybörjare", date: today(), time: "", seats: 8, price: "", desc: "" })}
+                >
+                  <Ic d={P.plus} size={15} /> Ny kurs
+                </button>
+              </div>
+              <div style={{ display: "grid", gap: 12 }}>
+                {s.courses.map((c) => {
+                  const parts = s.courseSignups.filter((x) => x.courseId === c.id);
+                  return (
+                    <div key={c.id} className="lcard">
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                        <strong>{c.name}</strong>
+                        <span className="ltag">
+                          {parts.length}/{c.seats} platser
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 13.5, color: C.grayLight, margin: "4px 0 8px" }}>
+                        {c.date} · {c.time} · {fmtKr(c.price)}
+                      </p>
+                      {parts.length > 0 && (
+                        <p style={{ fontSize: 13.5, lineHeight: 1.7, marginBottom: 8 }}>
+                          <strong>Deltagare:</strong>{" "}
+                          {parts.map((x) => x.name + (x.status === "bekräftad" ? " ✓" : "")).join(", ")}
+                        </p>
+                      )}
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button className="lbtn small sec" onClick={() => setEditCourse({ ...c })}>
+                          Redigera
+                        </button>
+                        <button className="lbtn small sec" onClick={() => up({ courses: s.courses.filter((x) => x.id !== c.id) })}>
+                          Ta bort
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ---------- INSTÄLLNINGAR ---------- */}
+          {av === "installningar" && <SettingsView s={s} up={up} toast={toast} />}
+        </div>
+      </div>
+
+      {/* Redigera / ny kurs */}
+      <Modal open={!!editCourse} onClose={() => setEditCourse(null)} title={editCourse && editCourse.id ? "Redigera kurs" : "Ny kurs"}>
+        {editCourse && (
+          <div>
+            <Field label="Namn">
+              <input className="linput" value={editCourse.name} onChange={(e) => setEditCourse({ ...editCourse, name: e.target.value })} />
+            </Field>
+            <div className="lgrid2">
+              <Field label="Nivå">
+                <select className="linput" value={editCourse.level} onChange={(e) => setEditCourse({ ...editCourse, level: e.target.value })}>
+                  {["Nybörjare", "Fortsättning", "Alla nivåer"].map((l) => (
+                    <option key={l}>{l}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Datum">
+                <input className="linput" type="date" value={editCourse.date} onChange={(e) => setEditCourse({ ...editCourse, date: e.target.value })} />
+              </Field>
+              <Field label="Tid">
+                <input className="linput" value={editCourse.time} onChange={(e) => setEditCourse({ ...editCourse, time: e.target.value })} placeholder="18:00–20:30" />
+              </Field>
+              <Field label="Platser">
+                <input className="linput" type="number" min="1" value={editCourse.seats} onChange={(e) => setEditCourse({ ...editCourse, seats: +e.target.value || 1 })} />
+              </Field>
+            </div>
+            <Field label="Pris (kr)">
+              <input className="linput" type="number" min="0" value={editCourse.price} onChange={(e) => setEditCourse({ ...editCourse, price: e.target.value })} />
+            </Field>
+            <Field label="Beskrivning">
+              <textarea className="linput" value={editCourse.desc} onChange={(e) => setEditCourse({ ...editCourse, desc: e.target.value })} />
+            </Field>
+            <button
+              className="lbtn"
+              style={{ marginTop: 16, width: "100%" }}
+              disabled={!editCourse.name.trim() || !editCourse.price}
+              onClick={() => {
+                const c = { ...editCourse, price: +editCourse.price || 0 };
+                up({
+                  courses: c.id ? s.courses.map((x) => (x.id === c.id ? c : x)) : [...s.courses, { ...c, id: uid() }],
+                });
+                setEditCourse(null);
+                toast("Kurs sparad ✔");
+              }}
+            >
+              Spara kurs
+            </button>
+          </div>
+        )}
+      </Modal>
+
+      {/* Redigera / ny produkt */}
+      <Modal open={!!editProd} onClose={() => setEditProd(null)} title={editProd && editProd.id ? "Redigera produkt" : "Ny produkt"}>
+        {editProd && (
+          <div>
+            <Field label="Titel">
+              <input className="linput" value={editProd.title} onChange={(e) => setEditProd({ ...editProd, title: e.target.value })} />
+            </Field>
+            <div className="lgrid2">
+              <Field label="Pris (kr)">
+                <input className="linput" type="number" min="0" value={editProd.price} onChange={(e) => setEditProd({ ...editProd, price: e.target.value })} />
+              </Field>
+              <Field label="Symbol (emoji)">
+                <input className="linput" value={editProd.emoji} onChange={(e) => setEditProd({ ...editProd, emoji: e.target.value })} />
+              </Field>
+              <Field label="Lager">
+                <input className="linput" type="number" min="0" value={editProd.stock} onChange={(e) => setEditProd({ ...editProd, stock: +e.target.value || 0 })} />
+              </Field>
+              <Field label="Mått">
+                <input className="linput" value={editProd.size} onChange={(e) => setEditProd({ ...editProd, size: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="Kort beskrivning">
+              <input className="linput" value={editProd.desc} onChange={(e) => setEditProd({ ...editProd, desc: e.target.value })} />
+            </Field>
+            <Field label="Material">
+              <input className="linput" value={editProd.material} onChange={(e) => setEditProd({ ...editProd, material: e.target.value })} />
+            </Field>
+            <Field label="Process">
+              <textarea className="linput" value={editProd.process} onChange={(e) => setEditProd({ ...editProd, process: e.target.value })} />
+            </Field>
+            <button
+              className="lbtn"
+              style={{ marginTop: 16, width: "100%" }}
+              disabled={!editProd.title.trim() || !editProd.price}
+              onClick={() => {
+                const p = { ...editProd, price: +editProd.price || 0 };
+                up({
+                  products: p.id ? s.products.map((x) => (x.id === p.id ? p : x)) : [...s.products, { ...p, id: uid() }],
+                });
+                setEditProd(null);
+                toast("Produkt sparad ✔");
+              }}
+            >
+              Spara produkt
+            </button>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+
+  function chStock(p, d) {
+    up({ products: s.products.map((x) => (x.id === p.id ? { ...x, stock: Math.max(0, x.stock + d) } : x)) });
+  }
+}
+
+/* ============================================================
+   ADMIN · MARKNADSFÖRING (reklambladsverktyg)
+   ============================================================ */
+function Marketing({ s, toast }) {
+  const [courseId, setCourseId] = useState(s.courses[0] ? s.courses[0].id : "");
+  const c = s.courses.find((x) => x.id === courseId);
+  const ct = s.settings.contact;
+  const flyer = c
+    ? `🏺 ${c.name.toUpperCase()} 🏺\n\n${c.desc}\n\n📅 ${c.date} · ${c.time}\n🎯 Nivå: ${c.level}\n💰 ${fmtKr(
+        c.price
+      )} · ${c.seats} platser\n\nBoka din plats hos Lias Hantverkeri i Karlskoga!\n📍 ${ct.address}\n📞 ${ct.phone}\n📸 ${ct.instagram}\n\n#keramik #karlskoga #hantverk #drejning`
+    : "";
+  const copy = () => {
+    try {
+      navigator.clipboard.writeText(flyer);
+      toast("Kopierat! Klistra in i Instagram/Facebook. ✔");
+    } catch (e) {
+      toast("Markera texten och kopiera manuellt.");
+    }
+  };
+  return (
+    <div className="lfade">
+      <h1 style={{ marginBottom: 16 }}>Marknadsföring</h1>
+      <div className="lcard">
+        <h3 style={{ marginBottom: 10 }}>Reklamblad för sociala medier</h3>
+        <Field label="Välj kurs">
+          <select className="linput" value={courseId} onChange={(e) => setCourseId(e.target.value)}>
+            {s.courses.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {c ? (
+          <>
+            <div
+              style={{
+                background: C.white,
+                borderRadius: 12,
+                padding: 16,
+                margin: "14px 0",
+                whiteSpace: "pre-wrap",
+                fontSize: 13.5,
+                lineHeight: 1.7,
+              }}
+            >
+              {flyer}
+            </div>
+            <button className="lbtn" onClick={copy}>
+              Kopiera texten
+            </button>
+          </>
+        ) : (
+          <p style={{ fontSize: 14, color: C.grayLight, marginTop: 12 }}>Skapa en kurs först, så kan du göra reklam för den här.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   ADMIN · INSTÄLLNINGAR
+   ============================================================ */
+function SettingsView({ s, up, toast }) {
+  const st = s.settings;
+  const setSt = (patch) => up({ settings: { ...st, ...patch } });
+  const setFrisor = (patch) => setSt({ frisor: { ...st.frisor, ...patch } });
+  const updCat = (id, patch) =>
+    setFrisor({ categories: st.frisor.categories.map((c) => (c.id === id ? { ...c, ...patch } : c)) });
+  const updAddon = (id, i, patch) => {
+    const cat = st.frisor.categories.find((c) => c.id === id);
+    updCat(id, { addons: cat.addons.map((a, j) => (j === i ? { ...a, ...patch } : a)) });
+  };
+  const updDay = (i, patch) =>
+    setFrisor({ schema: st.frisor.schema.map((d, j) => (j === i ? { ...d, ...patch } : d)) });
+  const [pw, setPw] = useState({ old: "", n1: "", n2: "" });
+  const [showGdpr, setShowGdpr] = useState(false);
+
+  const listEdit = (label, key, placeholder) => (
+    <div className="lcard" style={{ marginBottom: 14 }}>
+      <h3 style={{ marginBottom: 8 }}>{label}</h3>
+      {st[key].map((v, i) => (
+        <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+          <input
+            className="linput"
+            value={v}
+            onChange={(e) => {
+              const arr = [...st[key]];
+              arr[i] = e.target.value;
+              setSt({ [key]: arr });
+            }}
+          />
+          <button className="lbtn small sec" aria-label="Ta bort" onClick={() => setSt({ [key]: st[key].filter((_, j) => j !== i) })}>
+            <Ic d={P.x} size={15} />
+          </button>
+        </div>
+      ))}
+      <button className="lbtn small sec" onClick={() => setSt({ [key]: [...st[key], placeholder] })}>
+        <Ic d={P.plus} size={15} /> Lägg till
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="lfade">
+      <h1 style={{ marginBottom: 16 }}>Inställningar</h1>
+
+      <div className="lcard" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 4 }}>Frisör – tider &amp; priser</h3>
+        <p style={{ fontSize: 12.5, color: C.grayLight, marginBottom: 6 }}>
+          Minuterna styr vilka lediga tider kunden kan välja i bokningen.
+        </p>
+        {st.frisor.categories.map((cat) => (
+          <div key={cat.id} style={{ borderTop: "1px solid #E3D6BC", paddingTop: 12, marginTop: 12 }}>
+            <strong style={{ fontSize: 14.5, color: C.brown }}>{cat.name}</strong>
+            {Object.keys(cat.base).map((k) => (
+              <div key={k} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+                <span style={{ flex: 1, fontSize: 13.5, minWidth: 90 }}>{k}</span>
+                <input
+                  className="linput"
+                  type="number"
+                  min="5"
+                  step="5"
+                  style={{ maxWidth: 78 }}
+                  value={cat.base[k]}
+                  onChange={(e) => updCat(cat.id, { base: { ...cat.base, [k]: +e.target.value || 0 } })}
+                />
+                <span style={{ fontSize: 12 }}>min</span>
+                <input
+                  className="linput"
+                  type="number"
+                  min="0"
+                  style={{ maxWidth: 88 }}
+                  value={cat.price[k]}
+                  onChange={(e) => updCat(cat.id, { price: { ...cat.price, [k]: +e.target.value || 0 } })}
+                />
+                <span style={{ fontSize: 12 }}>kr</span>
+              </div>
+            ))}
+            {cat.addons.map((a, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+                <input
+                  className="linput"
+                  style={{ flex: 1, minWidth: 90 }}
+                  value={a.name}
+                  onChange={(e) => updAddon(cat.id, i, { name: e.target.value })}
+                />
+                <input
+                  className="linput"
+                  type="number"
+                  min="0"
+                  step="5"
+                  style={{ maxWidth: 78 }}
+                  value={a.min}
+                  onChange={(e) => updAddon(cat.id, i, { min: +e.target.value || 0 })}
+                />
+                <span style={{ fontSize: 12 }}>min</span>
+                <input
+                  className="linput"
+                  type="number"
+                  min="0"
+                  style={{ maxWidth: 88 }}
+                  value={a.price}
+                  onChange={(e) => updAddon(cat.id, i, { price: +e.target.value || 0 })}
+                />
+                <span style={{ fontSize: 12 }}>kr</span>
+                <button
+                  className="lbtn small sec"
+                  aria-label="Ta bort tillval"
+                  onClick={() => updCat(cat.id, { addons: cat.addons.filter((_, j) => j !== i) })}
+                >
+                  <Ic d={P.x} size={15} />
+                </button>
+              </div>
+            ))}
+            <button
+              className="lbtn small sec"
+              style={{ marginTop: 10 }}
+              onClick={() => updCat(cat.id, { addons: [...cat.addons, { name: "Nytt tillval", min: 15, price: 150 }] })}
+            >
+              <Ic d={P.plus} size={15} /> Tillval
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="lcard" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 4 }}>Schema (styr lediga tider)</h3>
+        <p style={{ fontSize: 12.5, color: C.grayLight, marginBottom: 6 }}>
+          Öppet och stängt per veckodag för frisörbokningen.
+        </p>
+        {[1, 2, 3, 4, 5, 6, 0].map((i) => {
+          const d = st.frisor.schema[i];
+          return (
+            <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
+              <span style={{ width: 40, fontSize: 13.5, fontWeight: 600 }}>{DAYS_SHORT[i]}</span>
+              <label style={{ fontSize: 12.5, display: "flex", gap: 6, alignItems: "center" }}>
+                <input
+                  type="checkbox"
+                  checked={d.closed}
+                  style={{ accentColor: C.terraDark }}
+                  onChange={(e) => updDay(i, { closed: e.target.checked })}
+                />
+                Stängt
+              </label>
+              {!d.closed && (
+                <>
+                  <input
+                    className="linput"
+                    type="time"
+                    style={{ maxWidth: 108 }}
+                    value={d.open}
+                    onChange={(e) => updDay(i, { open: e.target.value })}
+                  />
+                  –
+                  <input
+                    className="linput"
+                    type="time"
+                    style={{ maxWidth: 108 }}
+                    value={d.close}
+                    onChange={(e) => updDay(i, { close: e.target.value })}
+                  />
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {listEdit("Öppettider", "hours", "Mån–Fre: 09–18")}
+      {listEdit("Drop-in-tider (keramik)", "dropinTimes", "Onsdag 17–20")}
+
+      <div className="lcard" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 8 }}>Kontaktuppgifter</h3>
+        {[
+          ["address", "Adress"],
+          ["phone", "Telefon"],
+          ["email", "E-post"],
+          ["instagram", "Instagram"],
+          ["tiktok", "TikTok"],
+          ["facebook", "Facebook"],
+        ].map(([k, label]) => (
+          <Field key={k} label={label}>
+            <input className="linput" value={st.contact[k]} onChange={(e) => setSt({ contact: { ...st.contact, [k]: e.target.value } })} />
+          </Field>
+        ))}
+      </div>
+
+      <div className="lcard" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 8 }}>Adminkonto</h3>
+        <Field label="Nuvarande lösenord">
+          <input className="linput" type="password" value={pw.old} onChange={(e) => setPw({ ...pw, old: e.target.value })} />
+        </Field>
+        <Field label="Nytt lösenord">
+          <input className="linput" type="password" value={pw.n1} onChange={(e) => setPw({ ...pw, n1: e.target.value })} />
+        </Field>
+        <Field label="Upprepa nytt lösenord">
+          <input className="linput" type="password" value={pw.n2} onChange={(e) => setPw({ ...pw, n2: e.target.value })} />
+        </Field>
+        <button
+          className="lbtn dark"
+          style={{ marginTop: 14 }}
+          disabled={!pw.old || !pw.n1 || pw.n1 !== pw.n2}
+          onClick={() => {
+            if (pw.old !== st.adminPw) return toast("Fel nuvarande lösenord.");
+            if (pw.n1.length < 6) return toast("Minst 6 tecken, tack.");
+            setSt({ adminPw: pw.n1 });
+            setPw({ old: "", n1: "", n2: "" });
+            toast("Lösenord uppdaterat ✔");
+          }}
+        >
+          Byt lösenord
+        </button>
+        <p style={{ fontSize: 12.5, color: C.grayLight, marginTop: 10 }}>
+          2FA, kryptering och riktiga konton kräver backend – planeras i skarp version.
+        </p>
+      </div>
+
+      <div className="lcard" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 8 }}>GDPR &amp; Cookies</h3>
+        <button className="lghost" onClick={() => setShowGdpr(!showGdpr)}>
+          {showGdpr ? "Dölj texten" : "Visa texten"}
+        </button>
+        {showGdpr && <p style={{ fontSize: 13.5, lineHeight: 1.7, marginTop: 8 }}>{GDPR_TEXT}</p>}
+      </div>
+
+      <div className="lcard">
+        <h3 style={{ marginBottom: 8 }}>Verktyg</h3>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            className="lbtn small sec"
+            onClick={() => {
+              const tmr = new Date();
+              tmr.setDate(tmr.getDate() + 1);
+              const demo = {
+                bookings: [
+                  { id: uid(), name: "Anna Larsson", phone: "070-111 22 33", catName: "Damklippning", length: "Mellanlångt", addons: ["Färgning"], duration: 90, price: 1480, date: localDate(tmr), start: "10:00", comment: "Gärna nära fönstret 😊", status: "ny", created: today() },
+                  { id: uid(), name: "Erik Berg", phone: "070-444 55 66", catName: "Herrklippning", length: "Kort hår", addons: [], duration: 20, price: 380, date: today(), start: "14:00", comment: "", status: "bekräftad", confirmedAt: Date.now() - 2 * 864e5, created: today() },
+                ],
+                courseSignups: [{ id: uid(), courseId: s.courses[0] ? s.courses[0].id : "k1", name: "Maja Ek", phone: "070-777 88 99", status: "bekräftad", confirmedAt: Date.now() - 864e5, created: today() }],
+                messages: [{ id: uid(), name: "Sofia Nord", email: "sofia@example.se", phone: "", text: "Hej! Har ni presentkort till keramikkurserna?", created: today(), read: false }],
+              };
+              up(demo);
+              toast("Exempeldata inlagd ✔");
+            }}
+          >
+            Fyll i exempeldata
+          </button>
+          <button
+            className="lbtn small sec"
+            onClick={() => {
+              up({ bookings: [], courseSignups: [], dropins: [], specials: [], messages: [] });
+              toast("Bokningar & meddelanden rensade.");
+            }}
+          >
+            Rensa bokningsdata
+          </button>
+          <button
+            className="lbtn small sec"
+            onClick={() => {
+              up({ onboarded: false, obStep: 0, gdpr: false, admin: false });
+              toast("Onboarding visas igen.");
+            }}
+          >
+            Testa onboarding igen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP-ROT
+   ============================================================ */
+function App() {
+  const [s, setS] = useState(() => {
+    const saved = store.load();
+    return saved ? { ...initialData, ...saved, settings: { ...initialData.settings, ...(saved.settings || {}), contact: { ...initialData.settings.contact, ...((saved.settings || {}).contact || {}) } } } : initialData;
+  });
+  const [toastMsg, setToastMsg] = useState("");
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const toastTimer = useRef(null);
+
+  useEffect(() => {
+    store.save(s);
+  }, [s]);
+
+  const up = (patch) => setS((p) => ({ ...p, ...patch }));
+  const toast = (msg) => {
+    setToastMsg(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToastMsg(""), 2600);
+  };
+  const addBooking = (b) => up({ bookings: [...s.bookings, { id: uid(), ...b, status: "ny", created: today() }] });
+
+  const NAVC = [
+    ["frisor", "Frisör", P.cut],
+    ["keramik", "Keramik", P.pot],
+    ["shop", "Shop", P.bag],
+    ["omlia", "Om Lia", P.heart],
+    ["kontakt", "Kontakt", P.pin],
+  ];
+
+  return (
+    <div className="lias">
+      <style>{CSS}</style>
+
+      {!s.onboarded && <Onboarding s={s} up={up} done={() => up({ onboarded: true })} />}
+
+      {s.admin ? (
+        <AdminView s={s} up={up} toast={toast} />
+      ) : (
+        <>
+          {/* Header */}
+          <header
+            style={{
+              background: C.sandLight,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+              position: "sticky",
+              top: 0,
+              zIndex: 40,
+            }}
+          >
+            <div
+              style={{
+                maxWidth: 960,
+                margin: "0 auto",
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <button
+                onClick={() => up({ view: "frisor" })}
+                style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}
+              >
+                <span
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 12,
+                    background: C.terra,
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ic d={P.pot} size={22} />
+                </span>
+                <span style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 700, fontSize: 17, color: C.gray }}>
+                  Lias Hantverkeri
+                </span>
+              </button>
+              <nav className="topnav" aria-label="Huvudmeny">
+                {NAVC.map(([v, t]) => (
+                  <button key={v} className={s.view === v ? "on" : ""} onClick={() => up({ view: v })}>
+                    {t}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </header>
+
+          {/* Innehåll */}
+          <main className="onturq" style={{ maxWidth: 960, margin: "0 auto", padding: "20px 16px 110px" }}>
+            {s.view === "frisor" && <FrisorView s={s} up={up} addBooking={addBooking} toast={toast} />}
+            {s.view === "keramik" && <KeramikView s={s} up={up} toast={toast} />}
+            {s.view === "shop" && <ShopView s={s} up={up} toast={toast} />}
+            {s.view === "omlia" && <OmLiaView />}
+            {s.view === "kontakt" && <KontaktView s={s} up={up} toast={toast} openAdmin={() => setLoginOpen(true)} openPrivacy={() => setPrivacyOpen(true)} />}
+          </main>
+
+          {/* Bottenmeny (mobil) */}
+          <nav className="bottomnav" aria-label="Huvudmeny">
+            {NAVC.map(([v, t, i]) => (
+              <button key={v} className={"bnav-btn" + (s.view === v ? " on" : "")} onClick={() => up({ view: v })}>
+                <Ic d={i} size={21} />
+                {t}
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
+
+      <AdminLogin open={loginOpen} onClose={() => setLoginOpen(false)} s={s} up={up} />
+      <Modal open={privacyOpen} onClose={() => setPrivacyOpen(false)} title="Integritet & cookies">
+        {GDPR_POINTS.map(([t, txt]) => (
+          <p key={t} style={{ fontSize: 14, lineHeight: 1.65, marginBottom: 10 }}>
+            <strong style={{ color: C.brown }}>{t}:</strong> {txt}
+          </p>
+        ))}
+        {s.gdprDate && (
+          <p style={{ fontSize: 12.5, color: C.grayLight, marginTop: 6 }}>Du godkände villkoren {s.gdprDate}.</p>
+        )}
+      </Modal>
+      <Toast msg={toastMsg} />
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
